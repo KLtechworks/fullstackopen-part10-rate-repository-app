@@ -10,9 +10,18 @@
 // Exercise 10.8: the sign-in form
 import { TextInput, Pressable, View, StyleSheet } from 'react-native';
 import { useFormik } from 'formik';
-import Text from './Text';
+import  Text from './Text';
+
+// Exercise 10.15: storing the access token step2
+import { useNavigate } from 'react-router-native';
 // Exercise 10.9: validating the sign-in form
 import * as yup from 'yup';
+// Exercise 10.13: the sign in form mutation
+import useSignIn from '../hooks/useSignIn';  
+
+// Exercise 10.14: storing the access token step1
+import AuthStorage from '../utils/authStorage';
+
 
 const styles = StyleSheet.create({
   container: {
@@ -67,12 +76,44 @@ const initialValues = {
   password: '',
 };
 
+
 const SignIn = () => {
+  // Exercise 10.13: the sign in form mutation
+  const [signIn, result] = useSignIn(); 
+
+  // Exercise 10.15: storing the access token step2
+  const navigate = useNavigate();
+
   const formik = useFormik({
     initialValues,
     validationSchema,
-    onSubmit: (values) => {
-      console.log(values);  
+    // onSubmit: (values) => {
+    //   console.log(values);  
+    // },
+
+    // Exercise 10.13: the sign in form mutation
+    onSubmit: async (values) => {   
+      const { username, password } = values;
+
+      try {
+        const data = await signIn({ username, password });
+        console.log('signin success,Server response：', data);
+
+        // Exercise 10.14: storing the access token step1
+        const token = data.authenticate.accessToken;
+        const authStorage = new AuthStorage();
+        await authStorage.setAccessToken(token);
+        console.log('Token stored');
+
+        // Exercise 10.15: storing the access token step2
+        if (data?.authenticate?.accessToken) {
+          navigate('/repositories'); 
+        }
+        
+      } catch (e) {
+        console.log('error', e.message);
+        
+      }
     },
   });
 
@@ -119,8 +160,13 @@ const SignIn = () => {
       <Pressable 
         style={styles.button}
         onPress={formik.handleSubmit}   
+
+        disabled={result.loading} 
       >
-        <Text style={styles.buttonText}>Sign in</Text>
+        {/* <Text style={styles.buttonText}>Sign in</Text> */}
+        <Text style={styles.buttonText}>
+          {result.loading ? 'Signing in...' : 'Sign in'}
+        </Text>
       </Pressable>
     </View>
   );
