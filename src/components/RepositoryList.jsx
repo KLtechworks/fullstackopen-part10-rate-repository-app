@@ -128,20 +128,86 @@
 
 // export default RepositoryList;
 
-// Exercise 10.11: fetching repositories with Apollo Client
-import { FlatList, View, Text } from 'react-native';
-import RepositoryItem from './RepositoryItem';
-import useRepositories from '../hooks/useRepositories';  
+// // Exercise 10.11: fetching repositories with Apollo Client
+// import { FlatList, View, Text } from 'react-native';
+// import RepositoryItem from './RepositoryItem';
+// import useRepositories from '../hooks/useRepositories';
+
+// const RepositoryList = () => {
+//   const { repositories, loading} = useRepositories();
+
+//   // const repositoryNodes = repositories
+//   //   ? repositories.edges.map(edge => edge.node)
+//   //   : [];
+//   const repositoryNodes = repositories || [];
+
+//   if (loading || repositoryNodes.length === 0) {
+//     return (
+//       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+//         <Text>Loading...</Text>
+//       </View>
+//     );
+//   }
+
+//   return (
+//     <FlatList
+//       data={repositoryNodes}
+//       renderItem={({ item }) => <RepositoryItem item={item} />}
+//       keyExtractor={(item) => item.id}
+
+//       ItemSeparatorComponent={() => <View style={{ height: 10, backgroundColor: '#f0f0f0' }} />}
+//     />
+//   );
+// };
+
+// export default RepositoryList;
+
+// Exercise 10.17: testing the reviewed repositories list
+import { View, Text } from 'react-native';
+import useRepositories from '../hooks/useRepositories';
+import { RepositoryListContainer } from './RepositoryListContainer';
+// Exercise 10.23: sorting the reviewed repositories list
+import { useState } from 'react';
+// Exercise 10.24: filtering the reviewed repositories list
+import { useDebounce } from 'use-debounce';
+import { useNavigate } from 'react-router-native';
 
 const RepositoryList = () => {
-  const { repositories, loading} = useRepositories();   
+  const [sortBy, setSortBy] = useState('Latest');
+  // Exercise 10.24: filtering the reviewed repositories list
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [debouncedSearch] = useDebounce(searchKeyword, 500);
+  const navigate = useNavigate();
 
-  // const repositoryNodes = repositories
-  //   ? repositories.edges.map(edge => edge.node)
-  //   : [];
-  const repositoryNodes = repositories || [];
-  
-  if (loading || repositoryNodes.length === 0) {
+  const getSortVariables = () => {
+    switch (sortBy) {
+      case 'Highest':
+        return { orderBy: 'RATING_AVERAGE', orderDirection: 'DESC' };
+      case 'Lowest':
+        return { orderBy: 'RATING_AVERAGE', orderDirection: 'ASC' };
+      default:
+        return { orderBy: 'CREATED_AT', orderDirection: 'DESC' };
+    }
+  };
+
+  // Exercise 10.24: pass searchKeyword to the query
+  // const { repositories, loading } = useRepositories({
+  //   ...getSortVariables(),
+  //   searchKeyword: debouncedSearch,
+  // });
+
+  // 
+  const { repositories, fetchMore, loading } = useRepositories({
+    first: 8,
+    ...getSortVariables(),
+    searchKeyword: debouncedSearch,
+  });
+
+  const onEndReach = () => {
+    fetchMore();
+  };
+
+  if (loading && !repositories) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text>Loading...</Text>
@@ -150,14 +216,17 @@ const RepositoryList = () => {
   }
 
   return (
-    <FlatList
-      data={repositoryNodes}
-      renderItem={({ item }) => <RepositoryItem item={item} />}
-      keyExtractor={(item) => item.id}
-      
-      ItemSeparatorComponent={() => <View style={{ height: 10, backgroundColor: '#f0f0f0' }} />}
+    <RepositoryListContainer
+      repositories={repositories}
+      sortBy={sortBy}
+      setSortBy={setSortBy}
+      searchKeyword={searchKeyword}
+      setSearchKeyword={setSearchKeyword}
+      navigate={navigate}
+      onEndReach={onEndReach}
     />
   );
 };
 
 export default RepositoryList;
+

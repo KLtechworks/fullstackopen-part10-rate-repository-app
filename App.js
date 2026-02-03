@@ -51,7 +51,7 @@ const App = () => {
         <AuthStorageContext.Provider value={authStorage}>
           <Main />
         </AuthStorageContext.Provider>
-        {/* <Main /> */}
+
       </ApolloProvider>
     </NativeRouter>
   );

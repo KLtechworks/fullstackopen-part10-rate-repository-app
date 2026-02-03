@@ -1,6 +1,9 @@
 // Exercise 10.3: the reviewed repositories list
-import { View, Image, StyleSheet } from 'react-native';
+// import { View, Image, StyleSheet } from 'react-native';
 // import { Text } from 'react-native';
+
+// Exercise 10.19: the single repository view
+import { View, Image, StyleSheet, Pressable, Linking } from 'react-native';
 import CustomText from './Text';
 import theme from '../theme';
 
@@ -58,7 +61,20 @@ const styles = StyleSheet.create({
   statLabel: {
     color: theme.colors.textSecondary,
     fontSize: theme.fontSizes.body - 2,
-  }
+  },
+  // Exercise 10.19: the single repository view
+  githubButton: {
+    backgroundColor: theme.colors.primary,
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 15,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: theme.fontWeights.bold,
+  },
 });
 
 const formatCount = (count) => {
@@ -69,7 +85,8 @@ const formatCount = (count) => {
 };
 
 
-const RepositoryItem = ({ item }) => {
+// Exercise 10.19: the single repository view 
+const RepositoryItem = ({ item, showOpenButton }) => {
   const repo = item;
 
   return (
@@ -84,7 +101,8 @@ const RepositoryItem = ({ item }) => {
     //   <Text>Rating: {item.ratingAverage}</Text>              
     // </View>
     
-    <View style={styles.container}>
+    // Exercise 10.17: testing the reviewed repositories list
+    <View testID="repositoryItem" style={styles.container}>
      
       <View style={styles.header}>
         <Image
@@ -108,8 +126,8 @@ const RepositoryItem = ({ item }) => {
           </View>
         </View>
       </View>
+      
 
-     
       <View style={styles.statsRow}>
         <View style={styles.statItem}>
           <CustomText style={styles.statNumber}>
@@ -138,10 +156,16 @@ const RepositoryItem = ({ item }) => {
           </CustomText>
           <CustomText style={styles.statLabel}>Rating</CustomText>
         </View>
-      </View>
-    </View>
 
-    
+      </View>
+
+      {/* Exercise 10.19: the single repository view */}
+      {showOpenButton && (
+        <Pressable onPress={() => Linking.openURL(repo.url)} style={styles.githubButton}>
+          <CustomText style={styles.buttonText}>Open in GitHub</CustomText>
+        </Pressable>
+      )}
+    </View>
   );
 };
 

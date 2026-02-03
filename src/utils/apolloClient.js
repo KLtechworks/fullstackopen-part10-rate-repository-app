@@ -3,8 +3,10 @@ import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 
 // Exercise 10.12: environment variables
 import Constants from 'expo-constants';
-
 import { setContext } from '@apollo/client/link/context';
+
+// Exercise 10.27: infinite scrolling for the repository's reviews list
+import { relayStylePagination } from '@apollo/client/utilities';
 
 // const createApolloClient = () => {
 //   // Exercise 10.12: environment variables
@@ -26,6 +28,22 @@ const createApolloClient = (authStorage) => {
     uri: apolloUri,
   });
 
+  // Exercise 10.27: added Repository reviews pagination
+  const cache = new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          repositories: relayStylePagination(),
+        },
+      },
+      Repository: {
+        fields: {
+          reviews: relayStylePagination(),
+        },
+      },
+    },
+  });
+
   const authLink = setContext(async (_, { headers }) => {
     try {
       const accessToken = await authStorage.getAccessToken();
@@ -44,9 +62,10 @@ const createApolloClient = (authStorage) => {
     }
   });
 
+  // Exercise 10.27: infinite scrolling for the repository's reviews list
   return new ApolloClient({
-    link: authLink.concat(httpLink),   
-    cache: new InMemoryCache(),
+    link: authLink.concat(httpLink),
+    cache,
   });
 };
 

@@ -36,20 +36,35 @@
 import { useQuery } from '@apollo/client';
 import { GET_REPOSITORIES } from '../graphql/queries';
 
-const useRepositories = () => {
-  const { data, loading, error, refetch } = useQuery(GET_REPOSITORIES, {
-    fetchPolicy: 'cache-and-network',   
+// Exercise 10.23: sorting the reviewed repositories list
+// Exercise 10.24: searchKeyword is now part of variables
+// 
+const useRepositories = (variables) => {
+  const { data, loading, fetchMore, ...result } = useQuery(GET_REPOSITORIES, {
+    fetchPolicy: 'cache-and-network',
+    variables,
   });
 
-  const repositories = data
-    ? data.repositories.edges.map(edge => edge.node)
-    : null;
+  const handleFetchMore = () => {
+    const canFetchMore = !loading && data?.repositories.pageInfo.hasNextPage;
+
+    if (!canFetchMore) {
+      return;
+    }
+
+    fetchMore({
+      variables: {
+        after: data.repositories.pageInfo.endCursor,
+        ...variables,
+      },
+    });
+  };
 
   return {
-    repositories,
+    repositories: data?.repositories,
+    fetchMore: handleFetchMore,
     loading,
-    error,
-    refetch,   
+    ...result,
   };
 };
 
